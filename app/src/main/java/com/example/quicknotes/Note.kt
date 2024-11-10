@@ -1,9 +1,19 @@
 package com.example.quicknotes
 
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
+import java.io.Serial
+import java.io.Serializable
+
+@Entity(tableName = "notes", foreignKeys = [ForeignKey(entity = Folder::class, parentColumns = ["id"], childColumns = ["folderId"], onDelete = ForeignKey.CASCADE)])
 data class Note(
-    val id: Long,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val title: String,
-    val Content: String,
+    val content: String,
+    var folderId: Int? = null,
     val createdAt: Long,
     val updatedAt: Long
-)
+) : Serializable
