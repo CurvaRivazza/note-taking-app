@@ -5,75 +5,59 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
 
 class NoteViewModel(application: Application) : AndroidViewModel(application) {
+
     private val repository: NoteRepository
+
+    private val _allItems = MutableLiveData<List<Any>>()
+    val allItems: LiveData<List<Any>> = _allItems
+
+    private var currentFolderId: Int? = null
 
     init {
         val noteDao = NoteDatabase.getDatabase(application).noteDao()
         val foldersDao = NoteDatabase.getDatabase(application).foldersDao()
-        repository = NoteRepository(noteDao, foldersDao)
+        repository = NoteRepository(NoteDatabase.getDatabase(application))
+
+        loadItems()
     }
 
-    fun getAllNotesByFolder(folderId: Int?): LiveData<List<Note>> {
-        return repository.getNotesByFoldersLiveData(folderId ?: 0)
-    }
-
-    fun getRootNotes(): LiveData<List<Note>> {
-        return repository.getRootNotesLiveData()
-    }
-
-    fun insertNote(note: Note) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.insertNote(note)
+    fun loadItems(folderId: Int? = null) {
+        currentFolderId = folderId
+        viewModelScope.launch {
+            val notes =
+                if (folderId == null) repository.getAllNotes() else repository.getNotesByFolderId(
+                    folderId
+                )
+            val folders =
+                if (folderId == null) repository.getAllFolders() else repository.getFoldersByParentId(
+                    folderId
+                )
+            val items = mutableListOf<Any>()
+            items.addAll(folders)
+            items.addAll(notes)
+            _allItems.value = items
         }
     }
 
-    fun updateNote(note: Note) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateNote(note)
-        }
+    fun getNoteById(noteId: Int): LiveData<Note> {
+        return repository.getNoteById(noteId)
     }
 
-    fun deleteNote(note: Note) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteNote(note)
-        }
+    fun updateNote(note: Note) = viewModelScope.launch {
+        repository.updateNote(note)
     }
 
-    fun getNoteById(id: Int): LiveData<Note> {
-        return repository.getNoteById(id)
+    fun insertNote(note: Note) = viewModelScope.launch {
+        repository.insertNote(note)
+        loadItems(currentFolderId)
     }
 
-    fun getFolderById(id: Int): LiveData<Folder> {
-        return repository.getFolderById(id)
-    }
-
-    fun getRootFolders(): LiveData<List<Folder>> {
-        return repository.getRootFoldersLiveData()
-    }
-
-    fun getChildFolders(parentId: Int?): LiveData<List<Folder>> {
-        return repository.getChildFoldersLiveData(parentId)
-    }
-
-    fun insertFolder(folder: Folder) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.insertFolder(folder)
-        }
-    }
-
-    fun updateFolder(folder: Folder) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.updateFolder(folder)
-        }
-    }
-
-    fun deleteFolder(folderId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteFolder(folderId)
-        }
+    fun insertFolder(folder: Folder) = viewModelScope.launch {
+        repository.insertFolder(folder)
+        loadItems(currentFolderId)
     }
 }

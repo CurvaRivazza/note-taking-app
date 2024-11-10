@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation("androidx.room:room-ktx:2.6.1")
     implementation(libs.androidx.lifecycle.extensions)
     implementation("jp.wasabeef:richeditor-android:2.0.0")
     kapt(libs.androidx.room.compiler)

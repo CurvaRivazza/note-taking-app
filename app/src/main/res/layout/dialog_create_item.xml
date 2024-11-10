@@ -10,4 +10,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Enter title" />
+
+    <RadioGroup
+        android:id="@+id/itemTypeRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/noteRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Note" />
+
+        <RadioButton
+            android:id="@+id/folderRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Folder" />
+    </RadioGroup>
 </LinearLayout>

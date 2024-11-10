@@ -1,28 +1,30 @@
 package com.example.quicknotes
 
+import android.app.AlertDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.RadioGroup
 import android.widget.TextView
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.util.Stack
-class MainFragment : Fragment(), CreateItemDialogFragment.CreateItemDialogListener {
 
-    private lateinit var recyclerView: RecyclerView
+class MainFragment : Fragment() {
+
+    lateinit var noteViewModel: NoteViewModel
     private lateinit var combinedAdapter: CombinedAdapter
-    private lateinit var viewModel: NoteViewModel
-    private var currentFolderId: Int? = null
-    private val folderStack = Stack<Int>()
     private lateinit var currentPathTextView: TextView
     private lateinit var backButton: ImageButton
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var fab: FloatingActionButton
+
+    var folderStack = mutableListOf<Int?>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,142 +32,94 @@ class MainFragment : Fragment(), CreateItemDialogFragment.CreateItemDialogListen
     ): View? {
         val view = inflater.inflate(R.layout.fragment_main, container, false)
 
-        viewModel = ViewModelProvider(this).get(NoteViewModel::class.java)
-        recyclerView = view.findViewById(R.id.recyclerView)
         currentPathTextView = view.findViewById(R.id.currentPathTextView)
         backButton = view.findViewById(R.id.backButton)
+        recyclerView = view.findViewById(R.id.recyclerView)
+        fab = view.findViewById(R.id.fab)
 
-        combinedAdapter = CombinedAdapter(
-            onFolderClick = { folder ->
-                folderStack.push(currentFolderId ?: 0)
-                currentFolderId = folder.id
-                updateList()
-                updatePath()
-            },
-            onNoteClick = { note ->
-                val fragment = NoteDetailFragment().apply {
-                    arguments = Bundle().apply {
-                        putInt("noteId", note.id.toInt())
+        noteViewModel = ViewModelProvider(this).get(NoteViewModel::class.java)
+        combinedAdapter = CombinedAdapter { item ->
+            when (item) {
+                is Folder -> {
+                    folderStack.add(item.id)
+                    noteViewModel.loadItems(item.id)
+                    updateCurrentPath()
+                }
+                is Note -> {
+                    val fragment = NoteDetailFragment().apply {
+                        arguments = Bundle().apply {
+                            putInt("noteId", item.id.toInt())
+                        }
                     }
+                    parentFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, fragment)
+                        .addToBackStack(null)
+                        .commit()
                 }
-                parentFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, fragment)
-                    .addToBackStack(null)
-                    .commit()
             }
-        )
+        }
 
-        recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = combinedAdapter
+        recyclerView.layoutManager = LinearLayoutManager(context)
 
-        getRootItems()
-
-        val fab: FloatingActionButton = view.findViewById(R.id.fab)
-        fab.setOnClickListener {
-            val dialog = CreateItemDialogFragment().apply {
-                arguments = Bundle().apply {
-                    putInt("parentFolderId", currentFolderId ?: 0)
-                }
-                setListener(this@MainFragment)
-            }
-            dialog.show(parentFragmentManager, "CreateItemDialogFragment")
+        noteViewModel.allItems.observe(viewLifecycleOwner) { items ->
+            combinedAdapter.setItems(items)
         }
 
         backButton.setOnClickListener {
             if (folderStack.isNotEmpty()) {
-                currentFolderId = folderStack.pop()
-                updateList()
-                updatePath()
+                folderStack.removeAt(folderStack.size - 1)
+                val lastFolderId = folderStack.lastOrNull()
+                noteViewModel.loadItems(lastFolderId)
+                updateCurrentPath()
             }
+        }
+
+        fab.setOnClickListener {
+            showCreateItemDialog()
         }
 
         return view
     }
 
-    private fun updatePath() {
-        buildPath(currentFolderId) { path ->
-            currentPathTextView.text = path
+    fun updateCurrentPath() {
+        currentPathTextView.text = folderStack.joinToString(separator = " > ") { folderId ->
+            if (folderId == null) "Root" else "Folder $folderId"
         }
     }
 
-    private fun buildPath(folderId: Int?, callback: (String) -> Unit) {
-        if (folderId == null) {
-            callback("")
-            return
-        }
+    private fun showCreateItemDialog() {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_create_item, null)
+        val titleEditText = dialogView.findViewById<EditText>(R.id.titleEditText)
+        val itemTypeRadioGroup = dialogView.findViewById<RadioGroup>(R.id.itemTypeRadioGroup)
 
-        viewModel.getFolderById(folderId).observe(viewLifecycleOwner) { folder ->
-            if (folder == null) {
-                callback("")
-                return@observe
-            }
-            if (folder.parentId != null) {
-                buildPath(folder.parentId) { parentPath ->
-                    callback(if (parentPath.isEmpty()) folder.name else "$parentPath > ${folder.name}")
-                }
-            } else {
-                callback(folder.name)
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    if (folderStack.isNotEmpty()) {
-                        currentFolderId = folderStack.pop()
-                        updateList()
-                        updatePath()
-                    } else {
-                        isEnabled = false
-                        requireActivity().onBackPressed()
+        AlertDialog.Builder(context)
+            .setTitle("Create New Item")
+            .setView(dialogView)
+            .setPositiveButton("Create") { dialog, which ->
+                val title = titleEditText.text.toString()
+                if (title.isNotEmpty()) {
+                    val currentFolderId = folderStack.lastOrNull()
+                    val newItem = when (itemTypeRadioGroup.checkedRadioButtonId) {
+                        R.id.noteRadioButton -> {
+                            Note(title = title, content = "", folderId = currentFolderId, createdAt = System.currentTimeMillis(), updatedAt = System.currentTimeMillis())
+                        }
+                        R.id.folderRadioButton -> {
+                            Folder(name = title, parentId = currentFolderId)
+                        }
+                        else -> null
+                    }
+                    newItem?.let {
+                        when (it) {
+                            is Note -> noteViewModel.insertNote(it)
+                            is Folder -> noteViewModel.insertFolder(it)
+                            else -> {}
+                        }
                     }
                 }
-            })
-    }
-
-    override fun onCreateFolder(name: String, parentFolderId: Int?) {
-        val folder = Folder(name = name, parentId = parentFolderId)
-        viewModel.insertFolder(folder)
-        //updateList()
-    }
-
-    override fun onCreateNote(title: String, folderId: Int?) {
-        val note = Note(
-            id = 0,
-            title = title,
-            content = "",
-            folderId = folderId,
-            createdAt = System.currentTimeMillis(),
-            updatedAt = System.currentTimeMillis()
-        )
-        viewModel.insertNote(note)
-        updateList()
-    }
-
-    private fun updateList() {
-        viewModel.getChildFolders(currentFolderId).observe(viewLifecycleOwner) { folders ->
-            viewModel.getAllNotesByFolder(currentFolderId).observe(viewLifecycleOwner) { notes ->
-                val items = folders.map {
-                    Item.FolderItem(it)
-                } + notes.map {
-                    Item.NoteItem(it)
-                }
-                combinedAdapter.submitList(items)
             }
-        }
-    }
-
-    private fun getRootItems() {
-        viewModel.getRootFolders().observe(viewLifecycleOwner) { folders ->
-            viewModel.getRootNotes().observe(viewLifecycleOwner) { notes ->
-                val items = folders.map { Item.FolderItem(it) } + notes.map { Item.NoteItem(it) }
-                combinedAdapter.submitList(items)
-            }
-        }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }

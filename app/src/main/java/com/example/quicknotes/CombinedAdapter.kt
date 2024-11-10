@@ -5,64 +5,48 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-sealed class Item {
-    data class FolderItem(val folder: Folder) : Item()
-    data class NoteItem(val note: Note) : Item()
-}
+class CombinedAdapter(private val onItemClick: (Any) -> Unit) : RecyclerView.Adapter<CombinedAdapter.ViewHolder>() {
 
-class CombinedAdapter(
-    private val onFolderClick: (Folder) -> Unit,
-    private val onNoteClick: (Note) -> Unit
-) : ListAdapter<Item, RecyclerView.ViewHolder>(ItemDiffCallback()) {
+    private val items = mutableListOf<Any>()
 
-    class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val itemNameTextView: TextView = itemView.findViewById(R.id.itemNameTextView)
-        val itemIcon: ImageView = itemView.findViewById(R.id.itemIconImageView)
+    fun setItems(newItems: List<Any>) {
+        items.clear()
+        items.addAll(newItems)
+        notifyDataSetChanged()
     }
 
-    class ItemDiffCallback : DiffUtil.ItemCallback<Item>() {
-        override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean {
-            return when {
-                oldItem is Item.FolderItem && newItem is Item.FolderItem -> oldItem.folder.id == newItem.folder.id
-                oldItem is Item.NoteItem && newItem is Item.NoteItem -> oldItem.note.id == newItem.note.id
-                else -> false
-            }
-        }
-
-        override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
-            return oldItem == newItem
-        }
-    }
-
-    override fun getItemViewType(position: Int): Int {
-        return when (getItem(position)) {
-            is Item.FolderItem -> 0
-            is Item.NoteItem -> 1
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.recycler_item, parent, false)
-        return ItemViewHolder(view)
+        return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (val item = getItem(position)) {
-            is Item.FolderItem -> {
-                val folderHolder = holder as ItemViewHolder
-                folderHolder.itemNameTextView.text = item.folder.name
-                folderHolder.itemIcon.setImageResource(R.drawable.ic_folder)
-                folderHolder.itemView.setOnClickListener { onFolderClick(item.folder) }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = items[position]
+        holder.bind(item)
+    }
+
+    override fun getItemCount(): Int = items.size
+
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bind(item: Any) {
+            val itemIconImageView = itemView.findViewById<ImageView>(R.id.itemIconImageView)
+            val itemNameTextView = itemView.findViewById<TextView>(R.id.itemNameTextView)
+
+            when (item) {
+                is Note -> {
+                    itemIconImageView.setImageResource(R.drawable.ic_note)
+                    itemNameTextView.text = item.title
+                }
+                is Folder -> {
+                    itemIconImageView.setImageResource(R.drawable.ic_folder)
+                    itemNameTextView.text = item.name
+                }
             }
-            is Item.NoteItem -> {
-                val noteHolder = holder as ItemViewHolder
-                noteHolder.itemNameTextView.text = item.note.title
-                noteHolder.itemIcon.setImageResource(R.drawable.ic_note)
-                noteHolder.itemView.setOnClickListener { onNoteClick(item.note) }
+
+            itemView.setOnClickListener {
+                onItemClick(item)
             }
         }
     }

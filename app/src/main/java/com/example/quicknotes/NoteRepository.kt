@@ -1,54 +1,17 @@
 package com.example.quicknotes
 
-import androidx.lifecycle.LiveData
+class NoteRepository(private val noteDatabase: NoteDatabase) {
 
-class NoteRepository(private val noteDao: NoteDao, private val folderDao: FoldersDao) {
-    fun getNotesByFoldersLiveData(folderId: Int?): LiveData<List<Note>> {
-        return noteDao.getAllNotesByFolderLiveData(folderId)
-    }
+    suspend fun getAllNotes() = noteDatabase.noteDao().getAllNotes()
+    suspend fun getNotesByFolderId(folderId: Int) = noteDatabase.noteDao().getNotesByFolderId(folderId)
+    fun getNoteById(noteId: Int) = noteDatabase.noteDao().getNoteById(noteId)
+    suspend fun insertNote(note: Note) = noteDatabase.noteDao().insertNote(note)
+    suspend fun updateNote(note: Note) = noteDatabase.noteDao().updateNote(note)
+    suspend fun deleteNote(note: Note) = noteDatabase.noteDao().deleteNote(note)
 
-    fun getRootNotesLiveData(): LiveData<List<Note>> {
-        return noteDao.getRootNotesLiveData()
-    }
-
-    fun insertNote(note: Note) {
-        noteDao.insertNote(note)
-    }
-
-    fun updateNote(note: Note) {
-        noteDao.updateNote(note)
-    }
-
-    fun deleteNote(note: Note) {
-        noteDao.deleteNote(note)
-    }
-
-    fun getNoteById(id: Int): LiveData<Note> {
-        return noteDao.getNoteById(id)
-    }
-
-    fun getFolderById(id: Int): LiveData<Folder> {
-        return folderDao.getFolderById(id)
-    }
-
-    fun getRootFoldersLiveData(): LiveData<List<Folder>> {
-        return folderDao.getRootFoldersLiveData()
-    }
-
-    fun getChildFoldersLiveData(parentId: Int?): LiveData<List<Folder>> {
-        return folderDao.getChildFoldersLiveData(parentId)
-    }
-
-    fun insertFolder(folder: Folder) {
-        folderDao.insertFolder(folder)
-    }
-
-    fun updateFolder(folder: Folder) {
-        folderDao.updateFolder(folder)
-    }
-
-    fun deleteFolder(id: Int) {
-        folderDao.deleteFolder(id)
-    }
+    suspend fun getAllFolders() = noteDatabase.foldersDao().getAllFolders()
+    suspend fun getFoldersByParentId(parentId: Int) = noteDatabase.foldersDao().getFoldersByParentId(parentId)
+    suspend fun insertFolder(folder: Folder) = noteDatabase.foldersDao().insertFolder(folder)
+    suspend fun updateFolder(folder: Folder) = noteDatabase.foldersDao().updateFolder(folder)
+    suspend fun deleteFolder(folder: Folder) = noteDatabase.foldersDao().deleteFolder(folder)
 }
-

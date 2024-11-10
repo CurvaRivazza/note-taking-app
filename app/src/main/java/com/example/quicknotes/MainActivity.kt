@@ -24,4 +24,19 @@ class MainActivity : AppCompatActivity(){
                 .commit()
         }
     }
+    override fun onBackPressed() {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        if (fragment is MainFragment) {
+            if (fragment.folderStack.isNotEmpty()) {
+                fragment.folderStack.removeAt(fragment.folderStack.size - 1)
+                val lastFolderId = fragment.folderStack.lastOrNull()
+                fragment.noteViewModel.loadItems(lastFolderId)
+                fragment.updateCurrentPath()
+            } else {
+                super.onBackPressed()
+            }
+        } else {
+            super.onBackPressed()
+        }
+    }
 }

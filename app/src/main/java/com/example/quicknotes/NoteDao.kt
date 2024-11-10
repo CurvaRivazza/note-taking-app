@@ -9,24 +9,21 @@ import androidx.room.Update
 
 @Dao
 interface NoteDao {
+    @Query("SELECT * FROM notes")
+    suspend fun getAllNotes(): List<Note>
+
+    @Query("SELECT * FROM notes WHERE folderId IS :folderId")
+    suspend fun getNotesByFolderId(folderId: Int): List<Note>
+
+    @Query("SELECT * FROM notes WHERE id IS :noteId")
+    fun getNoteById(noteId: Int):LiveData<Note>
+
     @Insert
-    fun insertNote(note: Note): Long
+    suspend fun insertNote(note: Note)
 
     @Update
-    fun updateNote(note: Note)
+    suspend fun updateNote(note: Note)
 
     @Delete
-    fun deleteNote(note: Note)
-
-    @Query("SELECT * FROM notes WHERE folderId is :folderId ORDER BY updatedAt DESC")
-    fun getAllNotesByFolderLiveData(folderId: Int?): LiveData<List<Note>>
-
-    @Query("SELECT * FROM notes WHERE folderId IS NULL")
-    fun getRootNotesLiveData(): LiveData<List<Note>>
-
-    @Query("SELECT * FROM notes WHERE title LIKE :query OR content LIKE :query")
-    fun searchNotes(query: String): LiveData<List<Note>>
-
-    @Query("SELECT * FROM notes WHERE id = :id")
-    fun getNoteById(id: Int): LiveData<Note>
+    suspend fun deleteNote(note: Note)
 }
