@@ -2,8 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="primaryColor">#FF6F61</color>
-    <color name="secondaryColor">#6B5B95</color>
-    <color name="accentColor">#FFD700</color>
-    <color name="textColor">#333333</color>
+    <color name="primary">#FF6F61</color>
+    <color name="secondary">#6B5B95</color>
+    <color name="accent">#FFB400</color>
+    <color name="text">#333333</color>
+    <color name="background">#ffffff</color>
 </resources>

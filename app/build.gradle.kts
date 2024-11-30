@@ -48,6 +48,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     implementation(libs.androidx.lifecycle.extensions)
     implementation("jp.wasabeef:richeditor-android:2.0.0")
+    implementation("com.github.skydoves:colorpickerview:2.3.0")
     kapt(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

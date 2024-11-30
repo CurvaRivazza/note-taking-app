@@ -3,22 +3,46 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@null"
     android:orientation="horizontal"
-    android:padding="16dp"
-    android:background="@color/white">
+    android:padding="16dp">
 
     <ImageView
         android:id="@+id/itemIconImageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_folder"
-        android:layout_marginEnd="16dp" />
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_folder" />
 
     <TextView
         android:id="@+id/itemNameTextView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/text"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/textColor"/>
+        android:textStyle="bold" />
+
+    <ImageButton
+        android:id="@+id/editImageButton"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="8dp"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_edit"
+        android:visibility="gone"
+        app:tint="@color/primary" />
+
+    <ImageButton
+        android:id="@+id/deleteImageButton"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_delete"
+        app:tint="@color/primary" />
 </LinearLayout>

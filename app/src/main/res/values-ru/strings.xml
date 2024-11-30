@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QuickNotes</string>
+    <string name="enter_title">Введите заголовок</string>
+    <string name="note">Заметка</string>
+    <string name="folder">Папка</string>
+    <string name="no_items_found_you_can_create_new_items_by_clicking_the_button">Элементы не найдены. Вы можете создать новые элементы, нажав на кнопку \"+\".</string>
+    <string name="search">Поиск...</string>
+    <string name="title">Заголовок</string>
+    <string name="content">Содержимое</string>
+    <string name="quicknotes">QuickNotes</string>
+    <string name="your_pesronal_note_taking_assistant">Ваш личный помощник по ведению заметок</string>
+    <string name="dark_theme">Темная тема</string>
+    <string name="font_size">Размер шрифта</string>
+    <string name="language">Язык</string>
+    <string name="about">О разработчиках</string>
+    <string name="english">Английский</string>
+    <string name="russian">Русский</string>
+    <string name="font">Шрифт</string>
+    <string name="large">Большой</string>
+    <string name="medium">Средний</string>
+    <string name="small">Маленький</string>
+    <string name="this_app_is_developed_by">Это приложение разработано...</string>
+    <string name="view_mode">Режим просмотра</string>
+    <string name="find">Найти</string>
+    <string name="replace">Заменить</string>
+    <string name="share">Поделиться</string>
+    <string name="move_file">Переместить файл</string>
+    <string name="delete">Удалить</string>
+    <string name="create">Создать</string>
+    <string name="create_item">Создать элемент</string>
+    <string name="choose_item_type">Выберите тип элемента</string>
+    <string name="cancel">Отмена</string>
+    <string name="ok">Ок</string>
+    <string name="search1">Поиск</string>
+    <string name="what_to_replace">Что заменить?</string>
+    <string name="what_to_replace_it_with">Чем заменить?</string>
+    <string name="replacing_the_text">Замена текста</string>
+    <string name="pick_a_color">Выберите цвет</string>
+    <string name="select_the_format_to_export">Выберите формат для экспорта</string>
+    <string name="share_a_note">Share a note</string>
+    <string name="next">Далее</string>
+    <string name="select_item_type">Выберите тип элемента</string>
+    <string name="edit_title">Изменить заголовок</string>
+</resources>

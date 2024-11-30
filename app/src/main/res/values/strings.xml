@@ -1,5 +1,45 @@
 <resources>
     <string name="app_name">QuickNotes</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="enter_title">Enter title</string>
+    <string name="note">Note</string>
+    <string name="folder">Folder</string>
+    <string name="no_items_found_you_can_create_new_items_by_clicking_the_button">No items found. You can create new items by clicking the + button.</string>
+    <string name="search">Search...</string>
+    <string name="title">Title</string>
+    <string name="content">Content</string>
+    <string name="quicknotes">QuickNotes</string>
+    <string name="your_pesronal_note_taking_assistant">Your pesronal note-taking assistant</string>
+    <string name="dark_theme">Dark Theme</string>
+    <string name="font_size">Font Size</string>
+    <string name="language">Language</string>
+    <string name="about">About</string>
+    <string name="english">English</string>
+    <string name="russian">Russian</string>
+    <string name="font">Font</string>
+    <string name="large">Large</string>
+    <string name="medium">Medium</string>
+    <string name="small">Small</string>
+    <string name="this_app_is_developed_by">This app is developed by ...</string>
+    <string name="view_mode">View Mode</string>
+    <string name="find">Find</string>
+    <string name="replace">Replace</string>
+    <string name="share">Share</string>
+    <string name="move_file">Move File</string>
+    <string name="delete">Delete</string>
+    <string name="create">Create</string>
+    <string name="create_item">Create Item</string>
+    <string name="choose_item_type">Choose Item Type</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
+    <string name="search1">Search</string>
+    <string name="what_to_replace">What to replace?</string>
+    <string name="what_to_replace_it_with">What to replace it with?</string>
+    <string name="replacing_the_text">Replacing the text</string>
+    <string name="pick_a_color">Pick a color</string>
+    <string name="select_the_format_to_export">Select the format to export</string>
+    <string name="share_a_note">Share a note</string>
+    <string name="next">Next</string>
+    <string name="select_item_type">Select Item Type</string>
+    <string name="edit_title">Edit Title</string>
 </resources>

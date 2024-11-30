@@ -1,0 +1,26 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/viewModeButton"
+        android:title="@string/view_mode"
+        android:icon="@drawable/ic_read" />
+    <item
+        android:id="@+id/findButton"
+        android:title="@string/find"
+        android:icon="@drawable/ic_find" />
+    <item
+        android:id="@+id/replaceButton"
+        android:title="@string/replace"
+        android:icon="@drawable/ic_replace" />
+    <item
+        android:id="@+id/shareButton"
+        android:title="@string/share"
+        android:icon="@drawable/ic_share" />
+    <item
+        android:id="@+id/moveFileButton"
+        android:title="@string/move_file"
+        android:icon="@drawable/ic_file_move" />
+    <item
+        android:id="@+id/deleteButton"
+        android:title="@string/delete"
+        android:icon="@drawable/ic_delete" />
+</menu>

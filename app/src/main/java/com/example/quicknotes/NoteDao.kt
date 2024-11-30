@@ -13,7 +13,7 @@ interface NoteDao {
     suspend fun getAllNotes(): List<Note>
 
     @Query("SELECT * FROM notes WHERE folderId IS :folderId")
-    suspend fun getNotesByFolderId(folderId: Int): List<Note>
+    suspend fun getNotesByFolderId(folderId: Int?): List<Note>
 
     @Query("SELECT * FROM notes WHERE id IS :noteId")
     fun getNoteById(noteId: Int):LiveData<Note>

@@ -28,20 +28,23 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     fun loadItems(folderId: Int? = null) {
         currentFolderId = folderId
         viewModelScope.launch {
-            val notes =
-                if (folderId == null) repository.getAllNotes() else repository.getNotesByFolderId(
-                    folderId
-                )
-            val folders =
-                if (folderId == null) repository.getAllFolders() else repository.getFoldersByParentId(
-                    folderId
-                )
+            val notes = if (folderId == null) {
+                repository.getNotesByFolderId(null)
+            } else {
+                repository.getNotesByFolderId(folderId)
+            }
+            val folders = if (folderId == null) {
+                repository.getFoldersByParentId(null)
+            } else {
+                repository.getFoldersByParentId(folderId)
+            }
             val items = mutableListOf<Any>()
             items.addAll(folders)
             items.addAll(notes)
             _allItems.value = items
         }
     }
+
 
     fun getNoteById(noteId: Int): LiveData<Note> {
         return repository.getNoteById(noteId)
@@ -51,6 +54,15 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         repository.updateNote(note)
     }
 
+    fun deleteNote(note: Note) = viewModelScope.launch {
+        repository.deleteNote(note)
+        loadItems(currentFolderId)
+    }
+
+    fun getFolderById(folderId: Int): LiveData<Folder> {
+        return repository.getFolderById(folderId)
+    }
+
     fun insertNote(note: Note) = viewModelScope.launch {
         repository.insertNote(note)
         loadItems(currentFolderId)
@@ -58,6 +70,11 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     fun insertFolder(folder: Folder) = viewModelScope.launch {
         repository.insertFolder(folder)
+        loadItems(currentFolderId)
+    }
+
+    fun deleteFolder(folder: Folder) = viewModelScope.launch {
+        repository.deleteFolder(folder)
         loadItems(currentFolderId)
     }
 }

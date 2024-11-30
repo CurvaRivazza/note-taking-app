@@ -25,13 +25,13 @@ class CreateItemDialogFragment : DialogFragment() {
         val parentFolderId =
             if (arguments?.getInt("parentFolderId") == 0) null else arguments?.getInt("parentFolderId")
         val input = EditText(context)
-        return MaterialAlertDialogBuilder(requireContext()).setTitle("Create Item").setView(input)
-            .setPositiveButton("Create") { _, _ ->
+        return MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.create_item)).setView(input)
+            .setPositiveButton(getString(R.string.create)) { _, _ ->
                 val itemName = input.text.toString()
                 if (itemName.isNotBlank()) {
-                    MaterialAlertDialogBuilder(requireContext()).setTitle("Choose Item Type")
+                    MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.choose_item_type))
                         .setItems(
-                            arrayOf("Folder", "Note")
+                            arrayOf(getString(R.string.folder), getString(R.string.note))
                         ) { _, which ->
                             when (which) {
                                 0 -> listener.onCreateFolder(itemName, parentFolderId)
@@ -39,6 +39,6 @@ class CreateItemDialogFragment : DialogFragment() {
                             }
                         }.show()
                 }
-            }.setNegativeButton("Cancel", null).create()
+            }.setNegativeButton(getString(R.string.cancel), null).create()
     }
 }

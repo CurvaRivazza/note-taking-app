@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_dark_theme"
+        android:title="@string/dark_theme"
+        android:icon="@drawable/ic_night_mode"
+        app:actionViewClass="androidx.appcompat.widget.SwitchCompat"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_font_size"
+        android:title="@string/font_size"
+        android:icon="@drawable/ic_font_size" />
+    <item
+        android:id="@+id/menu_language"
+        android:title="@string/language"
+        android:icon="@drawable/ic_language" />
+    <item
+        android:id="@+id/menu_about"
+        android:title="@string/about"
+        android:icon="@drawable/ic_copyright" />
+</menu>
