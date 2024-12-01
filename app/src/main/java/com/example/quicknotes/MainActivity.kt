@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
     private lateinit var menuButton: ImageButton
-    var folderStack = mutableListOf<Int?>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val language = getLocalePreferences()
@@ -118,55 +117,6 @@ class MainActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this).setView(dialogView)
             .setPositiveButton(getString(R.string.ok)) { _, _ ->
             }.setNegativeButton(getString(R.string.cancel), null).create().show()
-    }
-
-    @SuppressLint("MissingSuperCall")
-    override fun onBackPressed() {
-        val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-        if (currentFragment is MainFragment) {
-            if (folderStack.isNotEmpty()) {
-                folderStack.removeAt(folderStack.size - 1)
-                val lastFolderId = folderStack.lastOrNull()
-                currentFragment.noteViewModel.loadItems(lastFolderId)
-                updateCurrentPath()
-                updateBackButtonVisibility()
-            }
-        } else if (currentFragment is NoteDetailFragment) {
-            val noteId = currentFragment.arguments?.getInt("noteId")
-            val folderStack = currentFragment.arguments?.getIntegerArrayList("folderStack")
-            if (folderStack != null) {
-                this.folderStack.clear()
-                this.folderStack.addAll(folderStack)
-            }
-            if (noteId != null) {
-                currentFragment.viewModel.getNoteById(noteId).observe(this) { note ->
-                    if (note != null) {
-                        folderStack?.add(note.folderId)
-                        updateCurrentPath()
-                        updateBackButtonVisibility()
-                        supportFragmentManager.popBackStack()
-                    }
-                }
-            }
-        }
-    }
-
-    fun updateCurrentPath() {
-        currentPathTextView.text = folderStack.lastOrNull()?.let { folderId ->
-            if (folderId == null) "Root" else {
-                val mainFragment =
-                    supportFragmentManager.findFragmentById(R.id.fragment_container) as MainFragment
-                ""
-            }
-        }
-    }
-
-    fun updateBackButtonVisibility() {
-        backButton.visibility = if (folderStack.isEmpty() || folderStack.lastOrNull() == null) {
-            View.GONE
-        } else {
-            View.VISIBLE
-        }
     }
 
     private fun saveThemePreference(isDarkTheme: Boolean) {

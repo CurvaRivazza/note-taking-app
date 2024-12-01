@@ -1,10 +1,16 @@
 package com.example.quicknotes
 
+import android.Manifest
+import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.Image
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,8 +20,10 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
@@ -28,8 +36,13 @@ import com.skydoves.colorpickerview.ColorPickerDialog
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import jp.wasabeef.richeditor.RichEditor
 import java.io.File
+import java.io.FileOutputStream
 
 class NoteDetailFragment : Fragment() {
+    private var currentNote: Note? = null
+    private var isBackPressedCallbackAdded = false
+    private val REQUEST_PERMISSIONS = 1001
+    private val REQUEST_IMAGE_PICK = 1
     private var isViewMode: Boolean = false
     lateinit var viewModel: NoteViewModel
     private lateinit var titleEditText: EditText
@@ -38,6 +51,7 @@ class NoteDetailFragment : Fragment() {
     private lateinit var hintTextView: TextView
     private lateinit var formatToolbar: HorizontalScrollView
     private lateinit var actionBar: ConstraintLayout
+    private lateinit var uploadImageButton: ImageButton
     private lateinit var alignLeftFormatImageButton: ImageButton
     private lateinit var alignCenterFormatImageButton: ImageButton
     private lateinit var alignRightFormatImageButton: ImageButton
@@ -68,6 +82,7 @@ class NoteDetailFragment : Fragment() {
         formatToolbar = view.findViewById(R.id.formatToolbar)
         hintTextView = view.findViewById(R.id.hintTextView)
         actionBar = view.findViewById(R.id.actionBar)
+        uploadImageButton = view.findViewById(R.id.uploadImageButton)
         alignLeftFormatImageButton = view.findViewById(R.id.alignLeftFormatImageButton)
         alignCenterFormatImageButton = view.findViewById(R.id.alignCenterFormatImageButton)
         alignRightFormatImageButton = view.findViewById(R.id.alignRightFormatImageButton)
@@ -97,6 +112,17 @@ class NoteDetailFragment : Fragment() {
         contentRichEditor.setEditorFontColor(resources.getColor(R.color.text))
         contentRichEditor.setPadding(8, 0, 8, 0)
 
+        uploadImageButton.setOnClickListener {
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.READ_MEDIA_IMAGES
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestMediaPermission()
+            } else {
+                openImagePicker()
+            }
+        }
         alignLeftFormatImageButton.setOnClickListener { contentRichEditor.setAlignLeft() }
         alignCenterFormatImageButton.setOnClickListener { contentRichEditor.setAlignCenter() }
         alignRightFormatImageButton.setOnClickListener { contentRichEditor.setAlignRight() }
@@ -120,6 +146,7 @@ class NoteDetailFragment : Fragment() {
         val noteId = arguments?.getInt("noteId")
         if (noteId != null) {
             viewModel.getNoteById(noteId).observe(viewLifecycleOwner) { note ->
+                currentNote = note
                 titleEditText.setText(note.title)
                 contentRichEditor.html = note.content
                 hintTextView.visibility = if (note.content.isEmpty()) View.VISIBLE else View.GONE
@@ -133,6 +160,9 @@ class NoteDetailFragment : Fragment() {
 
         saveButton.setOnClickListener {
             saveNote()
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            handleBackPress()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
@@ -151,6 +181,80 @@ class NoteDetailFragment : Fragment() {
             insets
         }
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        if (!isBackPressedCallbackAdded) {
+            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+                handleBackPress()
+            }
+            isBackPressedCallbackAdded = true
+        }
+    }
+
+    private fun handleBackPress() {
+        val title = titleEditText.text.toString()
+        val content = contentRichEditor.html
+
+        currentNote?.let { note ->
+            if (note.title != title || note.content != content) {
+                showUnsavedChangesDialog()
+            } else {
+                parentFragmentManager.popBackStack()
+            }
+        } ?: run {
+            parentFragmentManager.popBackStack()
+        }
+    }
+
+    private fun requestMediaPermission() {
+        ActivityCompat.requestPermissions(
+            requireActivity(),
+            arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
+            REQUEST_PERMISSIONS
+        )
+    }
+
+    private fun openImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, REQUEST_IMAGE_PICK)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { uri ->
+                val localImagePath = copyImageToAppStorage(uri)
+                val html =
+                    "<img src=\"$localImagePath\" style=\"width: 100%; height: auto;\"/> <br><br>"
+                contentRichEditor.evaluateJavascript(
+                    "javascript:document.execCommand('insertHTML', false, '$html');",
+                    null
+                )
+            }
+        }
+    }
+
+    private fun copyImageToAppStorage(imageUri: Uri): String {
+        val inputStream = context?.contentResolver?.openInputStream(imageUri)
+        val fileName = "image_${System.currentTimeMillis()}.jpg"
+        val imageFile = File(requireContext().getExternalFilesDir(null), fileName)
+
+        inputStream.use { input ->
+            val outputStream = FileOutputStream(imageFile)
+            input?.copyTo(outputStream)
+            outputStream.close()
+        }
+
+        val uri = FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            imageFile
+        )
+
+        return uri.toString()
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -256,22 +360,39 @@ class NoteDetailFragment : Fragment() {
         contentRichEditor.html = updatedContent
     }
 
+    private fun showUnsavedChangesDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Несохраненные изменения")
+            .setMessage("У вас есть несохраненные изменения. Вы хотите их сохранить?")
+            .setPositiveButton("Сохранить") { _, _ ->
+                saveNote()
+                parentFragmentManager.popBackStack()
+            }
+            .setNegativeButton("Отменить") { dialog, _ ->
+                dialog.dismiss()
+                parentFragmentManager.popBackStack()
+            }
+            .setNeutralButton("Отмена", null)
+            .show()
+    }
+
     private fun saveNote() {
-        val noteId = arguments?.getInt("noteId")
         val title = titleEditText.text.toString()
         val content = contentRichEditor.html
         val updatedAt = System.currentTimeMillis()
+        val updatedNote = Note(
+            currentNote!!.id,
+            title = title,
+            content = content,
+            currentNote!!.folderId,
+            currentNote!!.createdAt,
+            updatedAt = updatedAt
+        )
 
-        if (noteId != null) {
-            viewModel.getNoteById(noteId).observe(viewLifecycleOwner) { note ->
-                val updatedNote = note.copy(
-                    title = title,
-                    content = content,
-                    updatedAt = updatedAt
-                )
-                viewModel.updateNote(updatedNote)
-            }
-        }
+        // Обновляем заметку в ViewModel
+        viewModel.updateNote(updatedNote)
+
+        // После сохранения возвращаемся назад
     }
 
     private fun applyFormat(format: RichEditor.Type) = when (format) {

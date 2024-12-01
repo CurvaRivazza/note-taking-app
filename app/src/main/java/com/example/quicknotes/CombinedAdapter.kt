@@ -15,10 +15,30 @@ class CombinedAdapter(
 ) : RecyclerView.Adapter<CombinedAdapter.ViewHolder>() {
 
     private val items = mutableListOf<Any>()
+    private val filteredItems = mutableListOf<Any>()
 
     fun setItems(newItems: List<Any>) {
         items.clear()
         items.addAll(newItems)
+        filteredItems.clear()
+        filteredItems.addAll(newItems)
+        notifyDataSetChanged()
+    }
+
+    fun filter(query: String){
+        filteredItems.clear()
+        if(query.isEmpty()){
+            filteredItems.addAll(items)
+        } else{
+            val lowerCaseQuery = query.lowercase()
+            filteredItems.addAll(items.filter {
+                when(it){
+                    is Note -> it.title.lowercase().contains(lowerCaseQuery)
+                    is Folder -> it.name.lowercase().contains(lowerCaseQuery)
+                    else -> false
+                }
+            })
+        }
         notifyDataSetChanged()
     }
 
@@ -29,11 +49,11 @@ class CombinedAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = items[position]
+        val item = filteredItems[position]
         holder.bind(item)
     }
 
-    override fun getItemCount(): Int = items.size
+    override fun getItemCount(): Int = filteredItems.size
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: Any) {
