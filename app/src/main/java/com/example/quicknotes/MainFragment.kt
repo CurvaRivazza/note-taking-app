@@ -1,6 +1,7 @@
 package com.example.quicknotes
 
 import android.app.AlertDialog
+import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -69,18 +70,17 @@ class MainFragment : Fragment() {
                         if (searchView.query.isNotEmpty()) {
                             searchView.setQuery("", false)
                         }
+                        (activity as MainActivity).findViewById<ImageButton>(R.id.backButton).visibility =
+                            View.VISIBLE
                     }
                 }
             }
         }, onDeleteButtonClick = { item ->
-            when (item) {
-                is Note -> noteViewModel.deleteNote(item)
-                is Folder -> noteViewModel.deleteFolder(item)
-            }
+            showDeleteConfirmationDialog(item)
         }, onEditButtonClick = { item ->
             when (item) {
                 is Folder -> {
-
+                    showRenameFolderDialog(item)
                 }
             }
         })
@@ -187,5 +187,50 @@ class MainFragment : Fragment() {
             is Note -> noteViewModel.insertNote(newItem)
             is Folder -> noteViewModel.insertFolder(newItem)
         }
+    }
+
+    private fun showDeleteConfirmationDialog(item: Any) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.confirm_delete_title))
+            .setMessage(getString(R.string.confirm_delete_message))
+            .setPositiveButton(getString(R.string.delete)) { dialog, which ->
+                when (item) {
+                    is Note -> noteViewModel.deleteNote(item)
+                    is Folder -> noteViewModel.deleteFolder(item)
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun showRenameFolderDialog(folder: Folder) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_rename_folder, null)
+        val nameEditText = dialogView.findViewById<EditText>(R.id.nameEditText)
+        nameEditText.setText(folder.name)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.rename_folder))
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.save)) { dialog, which ->
+                val newName = nameEditText.text.toString()
+                if (newName.isNotEmpty()) {
+                    val updatedFolder = folder.copy(name = newName)
+                    noteViewModel.updateFolder(updatedFolder)
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as MainActivity).setLocale(requireContext(), (activity as MainActivity).getLocalePreferences())
+        if(folderStack.isEmpty()){
+            val backButton = (activity as MainActivity).findViewById<ImageButton>(R.id.backButton)
+            if(backButton?.visibility == View.VISIBLE){
+                backButton.visibility = View.GONE
+            }
+        }
+        noteViewModel.loadItems(folderStack.lastOrNull())
     }
 }

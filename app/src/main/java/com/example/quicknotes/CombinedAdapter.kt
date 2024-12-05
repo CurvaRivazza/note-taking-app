@@ -76,6 +76,7 @@ class CombinedAdapter(
                     itemIconImageView.setImageResource(R.drawable.ic_folder)
                     itemNameTextView.text = item.name
                     editImageButton.visibility = View.VISIBLE
+                    editImageButton.setOnClickListener { onEditButtonClick(item) }
                 }
             }
 

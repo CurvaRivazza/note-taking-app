@@ -134,18 +134,18 @@ class MainActivity : AppCompatActivity() {
         return sharedPreferences.getBoolean("dark_theme", false)
     }
 
-    private fun getLocalePreferences(): String? {
+    fun getLocalePreferences(): String? {
         val sharedPreferences = getSharedPreferences("locale_prefs", MODE_PRIVATE)
         return sharedPreferences.getString("language", "en")
     }
 
-    private fun setLocale(context: Context, language: String?) {
+    fun setLocale(context: Context, language: String?) {
         val newLocale = Locale(language)
         Locale.setDefault(newLocale)
 
-        val configuration = context.resources.configuration
-        configuration.setLocale(newLocale)
-        context.resources.updateConfiguration(configuration, context.resources.displayMetrics)
+        val config = context.resources.configuration
+        config.setLocale(newLocale)
+        context.resources.updateConfiguration(config, context.resources.displayMetrics)
 
         if (context is AppCompatActivity) {
             val currentLanguage = getLocalePreferences()

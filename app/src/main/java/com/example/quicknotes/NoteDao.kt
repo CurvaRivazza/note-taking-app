@@ -9,8 +9,6 @@ import androidx.room.Update
 
 @Dao
 interface NoteDao {
-    @Query("SELECT * FROM notes")
-    suspend fun getAllNotes(): List<Note>
 
     @Query("SELECT * FROM notes WHERE folderId IS :folderId")
     suspend fun getNotesByFolderId(folderId: Int?): List<Note>

@@ -14,15 +14,21 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _allItems = MutableLiveData<List<Any>>()
     val allItems: LiveData<List<Any>> = _allItems
+    private val _allFolders = MutableLiveData<List<Folder>>()
+    val allFolders: LiveData<List<Folder>> = _allFolders
 
     private var currentFolderId: Int? = null
 
     init {
-        val noteDao = NoteDatabase.getDatabase(application).noteDao()
-        val foldersDao = NoteDatabase.getDatabase(application).foldersDao()
         repository = NoteRepository(NoteDatabase.getDatabase(application))
-
         loadItems()
+        loadFolders()
+    }
+
+    private fun loadFolders() {
+        viewModelScope.launch {
+            _allFolders.value = repository.getAllFolders()
+        }
     }
 
     fun loadItems(folderId: Int? = null) {
@@ -45,6 +51,13 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun getAllFolders(): List<Folder> {
+        var liveData: List<Folder> = mutableListOf()
+        viewModelScope.launch {
+            liveData = repository.getAllFolders()
+        }
+        return liveData
+    }
 
     fun getNoteById(noteId: Int): LiveData<Note> {
         return repository.getNoteById(noteId)
@@ -56,11 +69,6 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteNote(note: Note) = viewModelScope.launch {
         repository.deleteNote(note)
-        loadItems(currentFolderId)
-    }
-
-    fun getFolderById(folderId: Int): LiveData<Folder> {
-        return repository.getFolderById(folderId)
     }
 
     fun insertNote(note: Note) = viewModelScope.launch {
@@ -75,6 +83,11 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteFolder(folder: Folder) = viewModelScope.launch {
         repository.deleteFolder(folder)
+        loadItems(currentFolderId)
+    }
+
+    fun updateFolder(folder: Folder) = viewModelScope.launch {
+        repository.updateFolder(folder)
         loadItems(currentFolderId)
     }
 }

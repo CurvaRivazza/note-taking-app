@@ -42,4 +42,11 @@
     <string name="next">Далее</string>
     <string name="select_item_type">Выберите тип элемента</string>
     <string name="edit_title">Изменить заголовок</string>
+    <string name="confirm_delete_title">Подтвердите удаление</string>
+    <string name="confirm_delete_message">Вы уверены, что хотите удалить этот элемент?</string>
+    <string name="rename_folder">Переименовать папку</string>
+    <string name="enter_new_folder_name">Введите новое название для папки:</string>
+    <string name="folder_name_hint">Новое название</string>
+    <string name="save">Сохранить</string>
+    <string name="select_folder">inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {</string>
 </resources>

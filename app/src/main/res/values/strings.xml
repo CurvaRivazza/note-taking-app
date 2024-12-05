@@ -42,4 +42,11 @@
     <string name="next">Next</string>
     <string name="select_item_type">Select Item Type</string>
     <string name="edit_title">Edit Title</string>
+    <string name="confirm_delete_title">Confirm the deletion</string>
+    <string name="confirm_delete_message">Are you sure you want to delete this item?</string>
+    <string name="rename_folder">Rename a folder</string>
+    <string name="enter_new_folder_name">Enter a new name for the folder:</string>
+    <string name="folder_name_hint">New name</string>
+    <string name="save">Save</string>
+    <string name="select_folder">Select Folder</string>
 </resources>

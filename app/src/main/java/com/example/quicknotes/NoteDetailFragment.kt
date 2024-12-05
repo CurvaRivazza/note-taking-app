@@ -20,6 +20,7 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -31,6 +32,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.map
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.skydoves.colorpickerview.ColorPickerDialog
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
@@ -210,11 +214,31 @@ class NoteDetailFragment : Fragment() {
     }
 
     private fun requestMediaPermission() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
         ActivityCompat.requestPermissions(
             requireActivity(),
-            arrayOf(Manifest.permission.READ_MEDIA_IMAGES),
+            arrayOf(permission),
             REQUEST_PERMISSIONS
         )
+    }
+
+    private fun handleOldAndroidUri(uri: Uri): String {
+        val inputStream = context?.contentResolver?.openInputStream(uri)
+        val fileName = "image_${System.currentTimeMillis()}.jpg"
+        val imageFile = File(requireContext().getExternalFilesDir(null), fileName)
+
+        inputStream.use { input ->
+            val outputStream = FileOutputStream(imageFile)
+            input?.copyTo(outputStream)
+            outputStream.close()
+        }
+
+        return imageFile.absolutePath
     }
 
     private fun openImagePicker() {
@@ -226,7 +250,11 @@ class NoteDetailFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK) {
             data?.data?.let { uri ->
-                val localImagePath = copyImageToAppStorage(uri)
+                val localImagePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    copyImageToAppStorage(uri)
+                } else {
+                    handleOldAndroidUri(uri)
+                }
                 val html =
                     "<img src=\"$localImagePath\" style=\"width: 100%; height: auto;\"/> <br><br>"
                 contentRichEditor.evaluateJavascript(
@@ -274,11 +302,34 @@ class NoteDetailFragment : Fragment() {
                 R.id.findButton -> showFindDialog()
                 R.id.replaceButton -> showReplaceDialog()
                 R.id.shareButton -> showShareDialog()
+                R.id.moveFileButton -> showMoveNoteDialog()
+                R.id.deleteButton -> deleteNote()
                 else -> false
             }
             true
         }
         popupMenu.show()
+    }
+
+    private fun deleteNote() {
+        currentNote?.let { note ->
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Удалить заметку")
+                .setMessage("Вы уверены, что хотите удалить эту заметку?")
+                .setPositiveButton("Да") { _, _ ->
+                    viewModel.deleteNote(note)
+                    parentFragmentManager.popBackStack()
+                }
+                .setNegativeButton("Нет") { dialog, _ -> dialog.dismiss() }
+                .show()
+        } ?: run {
+
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Ошибка")
+                .setMessage("Не удалось найти заметку для удаления.")
+                .setPositiveButton("Ок") { dialog, _ -> dialog.dismiss() }
+                .show()
+        }
     }
 
     private fun toggleViewMode(popupMenu: PopupMenu) {
@@ -388,11 +439,7 @@ class NoteDetailFragment : Fragment() {
             currentNote!!.createdAt,
             updatedAt = updatedAt
         )
-
-        // Обновляем заметку в ViewModel
         viewModel.updateNote(updatedNote)
-
-        // После сохранения возвращаемся назад
     }
 
     private fun applyFormat(format: RichEditor.Type) = when (format) {
@@ -477,4 +524,63 @@ class NoteDetailFragment : Fragment() {
 
         startActivity(Intent.createChooser(shareIntent, getString(R.string.share_a_note)))
     }
+
+    private fun showMoveNoteDialog() {
+        viewModel.allFolders.observe(viewLifecycleOwner) { folders ->
+            val folderTree = buildFolderHierarchy(folders)
+
+            val dialogView =
+                LayoutInflater.from(requireContext()).inflate(R.layout.dialog_select_folder, null)
+            val recyclerView = dialogView.findViewById<RecyclerView>(R.id.recyclerView)
+            recyclerView.layoutManager = LinearLayoutManager(context)
+
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.select_folder))
+                .setView(dialogView)
+                .setNegativeButton(getString(R.string.cancel), null).create()
+
+            val adapter = FolderAdapter(folderTree) { selectedFolder ->
+                moveNoteToFolder(selectedFolder.id)
+                dialog.dismiss()
+            }
+
+            recyclerView.adapter = adapter
+            dialog.show()
+        }
+    }
+
+    private fun moveNoteToFolder(folderId: Int) {
+        currentNote?.let {
+            val updatedNote = it.copy(folderId = folderId)
+            viewModel.updateNote(updatedNote)
+            Toast.makeText(requireContext(), "Заметка перемещена в папку", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    private fun buildFolderHierarchy(folders: List<Folder>): List<FolderItem> {
+        val folderMap = folders.associateBy { it.id }
+        val rootFolders = folders.filter { it.parentId == null }
+        val folderItems = mutableListOf<FolderItem>()
+
+        rootFolders.forEach { rootFolder ->
+            folderItems.add(FolderItem(rootFolder, 0))
+            addChildFolders(folderItems, rootFolder.id, folderMap, 1)
+        }
+
+        return folderItems
+    }
+
+    private fun addChildFolders(
+        folderItems: MutableList<FolderItem>,
+        parentId: Int?,
+        folderMap: Map<Int, Folder>,
+        level: Int
+    ) {
+        folderMap.values.filter { it.parentId == parentId }.forEach { folder ->
+            folderItems.add(FolderItem(folder, level))
+            addChildFolders(folderItems, folder.id, folderMap, level + 1)
+        }
+    }
+
 }
