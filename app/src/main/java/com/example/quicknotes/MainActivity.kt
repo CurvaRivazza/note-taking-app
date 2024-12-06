@@ -1,12 +1,8 @@
 package com.example.quicknotes
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.ImageButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -34,11 +30,10 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         window.statusBarColor = resources.getColor(R.color.primary)
-
         drawerLayout = findViewById(R.id.drawer_layout)
         navView = findViewById(R.id.nav_view)
         menuButton = findViewById(R.id.menuButton)
-        currentPathTextView = findViewById(R.id.currentPathTextView)
+        currentPathTextView = findViewById(R.id.parentFolderTextView)
         backButton = findViewById(R.id.backButton)
         menuButton.setOnClickListener {
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -153,5 +148,9 @@ class MainActivity : AppCompatActivity() {
                 context.recreate()
             }
         }
+    }
+
+    fun updateCurrentPathTextView(folderName: String?) {
+        currentPathTextView.text = folderName ?: getString(R.string.root_folder)
     }
 }

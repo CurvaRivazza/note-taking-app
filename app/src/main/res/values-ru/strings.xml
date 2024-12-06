@@ -48,5 +48,6 @@
     <string name="enter_new_folder_name">Введите новое название для папки:</string>
     <string name="folder_name_hint">Новое название</string>
     <string name="save">Сохранить</string>
-    <string name="select_folder">inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {</string>
+    <string name="select_folder">Выберите папку</string>
+    <string name="root_folder">Главная</string>
 </resources>

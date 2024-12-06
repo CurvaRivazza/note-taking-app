@@ -1,10 +1,13 @@
 package com.example.quicknotes
 
 import android.app.Application
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 
@@ -18,6 +21,9 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     val allFolders: LiveData<List<Folder>> = _allFolders
 
     private var currentFolderId: Int? = null
+
+    private val _folderName = MutableLiveData<String>()
+    val folderName: LiveData<String> = _folderName
 
     init {
         repository = NoteRepository(NoteDatabase.getDatabase(application))
@@ -48,6 +54,17 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
             items.addAll(folders)
             items.addAll(notes)
             _allItems.value = items
+        }
+    }
+
+    fun getFolderById(folderId: Int?, context: Context) {
+        if(folderId == null){
+            _folderName.value = ""
+        } else {
+            viewModelScope.launch {
+                val folder = repository.getFolderById(folderId)
+                _folderName.value = folder.name
+            }
         }
     }
 

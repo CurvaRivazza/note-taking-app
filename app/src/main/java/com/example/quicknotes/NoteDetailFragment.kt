@@ -169,6 +169,10 @@ class NoteDetailFragment : Fragment() {
             handleBackPress()
         }
 
+        viewModel.folderName.observe(viewLifecycleOwner) { folderName ->
+            (activity as? MainActivity)?.updateCurrentPathTextView(folderName)
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
             val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
             if (imeVisible) {
@@ -472,7 +476,7 @@ class NoteDetailFragment : Fragment() {
                 } else {
                     contentRichEditor.setTextBackgroundColor(envelope.color)
                 }
-            }).setNegativeButton(getString(R.string.cancel)) { dialog, i -> dialog.dismiss() }
+            }).setNegativeButton(getString(R.string.cancel)) { dialog, i -> dialog.dismiss() }.attachAlphaSlideBar(true)
             .attachAlphaSlideBar(true).attachBrightnessSlideBar(true).setBottomSpace(12).show()
     }
 
@@ -553,6 +557,7 @@ class NoteDetailFragment : Fragment() {
         currentNote?.let {
             val updatedNote = it.copy(folderId = folderId)
             viewModel.updateNote(updatedNote)
+            viewModel.getFolderById(folderId, requireContext())
             Toast.makeText(requireContext(), "Заметка перемещена в папку", Toast.LENGTH_SHORT)
                 .show()
         }

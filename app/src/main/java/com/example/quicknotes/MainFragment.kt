@@ -41,7 +41,7 @@ class MainFragment : Fragment() {
         fab = view.findViewById(R.id.fab)
         emptyView = view.findViewById(R.id.emptyView)
         searchView = view.findViewById(R.id.searchView)
-
+        (activity as MainActivity).updateCurrentPathTextView("")
         noteViewModel = ViewModelProvider(this).get(NoteViewModel::class.java)
         combinedAdapter = CombinedAdapter(onItemClick = { item ->
             when (item) {
@@ -53,6 +53,7 @@ class MainFragment : Fragment() {
                     folderStack.add(item.id)
                     noteViewModel.loadItems(item.id)
                     updateBackButtonVisibility()
+                    (activity as? MainActivity)?.updateCurrentPathTextView(item.name)
                 }
 
                 is Note -> {
@@ -70,8 +71,9 @@ class MainFragment : Fragment() {
                         if (searchView.query.isNotEmpty()) {
                             searchView.setQuery("", false)
                         }
-                        (activity as MainActivity).findViewById<ImageButton>(R.id.backButton).visibility =
+                        activity.findViewById<ImageButton>(R.id.backButton).visibility =
                             View.VISIBLE
+                        noteViewModel.getFolderById(item.folderId, requireContext())
                     }
                 }
             }
@@ -91,6 +93,10 @@ class MainFragment : Fragment() {
         noteViewModel.allItems.observe(viewLifecycleOwner) { items ->
             combinedAdapter.setItems(items)
             emptyView.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        }
+
+        noteViewModel.folderName.observe(viewLifecycleOwner) { folderName ->
+            (activity as? MainActivity)?.updateCurrentPathTextView(folderName)
         }
 
         fab.setOnClickListener {
@@ -120,6 +126,7 @@ class MainFragment : Fragment() {
             folderStack.removeAt(folderStack.size - 1)
             val lastFolderId = folderStack.lastOrNull()
             noteViewModel.loadItems(lastFolderId)
+            noteViewModel.getFolderById(lastFolderId, requireContext())
             updateBackButtonVisibility()
         }
     }

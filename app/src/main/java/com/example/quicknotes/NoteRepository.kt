@@ -8,6 +8,7 @@ class NoteRepository(private val noteDatabase: NoteDatabase) {
     suspend fun updateNote(note: Note) = noteDatabase.noteDao().updateNote(note)
     suspend fun deleteNote(note: Note) = noteDatabase.noteDao().deleteNote(note)
 
+    suspend fun getFolderById(folderId: Int?) = noteDatabase.foldersDao().getFolderById(folderId)
     suspend fun getAllFolders() = noteDatabase.foldersDao().getAllFolders()
     suspend fun getFoldersByParentId(parentId: Int?) = noteDatabase.foldersDao().getFoldersByParentId(parentId)
     suspend fun insertFolder(folder: Folder) = noteDatabase.foldersDao().insertFolder(folder)

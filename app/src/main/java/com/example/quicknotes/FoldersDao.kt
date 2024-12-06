@@ -16,7 +16,7 @@ interface FoldersDao {
     suspend fun getFoldersByParentId(parentId: Int?): List<Folder>
 
     @Query("SELECT * FROM folders WHERE id IS :folderId")
-    fun getFolderById(folderId: Int): LiveData<Folder>
+    suspend fun getFolderById(folderId: Int?): Folder
 
     @Insert
     suspend fun insertFolder(folder: Folder)

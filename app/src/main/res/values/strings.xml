@@ -49,4 +49,5 @@
     <string name="folder_name_hint">New name</string>
     <string name="save">Save</string>
     <string name="select_folder">Select Folder</string>
+    <string name="root_folder">"Root</string>
 </resources>
