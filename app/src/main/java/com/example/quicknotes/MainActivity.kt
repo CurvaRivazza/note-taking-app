@@ -48,7 +48,6 @@ class MainActivity : AppCompatActivity() {
 
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.menu_font_size -> showFontChangeDialog()
                 R.id.menu_language -> showLanguageChangeDialog()
                 R.id.menu_about -> showAboutAuthorsDialog()
             }
@@ -103,14 +102,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 setLocale(this, language)
                 saveLocalePreferences(language)
-            }.setNegativeButton(getString(R.string.cancel), null).create().show()
-    }
-
-    private fun showFontChangeDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_select_font_size, null)
-
-        MaterialAlertDialogBuilder(this).setView(dialogView)
-            .setPositiveButton(getString(R.string.ok)) { _, _ ->
             }.setNegativeButton(getString(R.string.cancel), null).create().show()
     }
 

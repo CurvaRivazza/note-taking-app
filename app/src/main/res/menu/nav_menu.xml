@@ -8,10 +8,6 @@
         app:actionViewClass="androidx.appcompat.widget.SwitchCompat"
         app:showAsAction="always" />
     <item
-        android:id="@+id/menu_font_size"
-        android:title="@string/font_size"
-        android:icon="@drawable/ic_font_size" />
-    <item
         android:id="@+id/menu_language"
         android:title="@string/language"
         android:icon="@drawable/ic_language" />

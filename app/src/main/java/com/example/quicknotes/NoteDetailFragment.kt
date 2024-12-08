@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.Rect
 import android.media.Image
 import android.net.Uri
 import android.os.Build
@@ -14,6 +15,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.ImageButton
@@ -22,6 +24,8 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
@@ -73,6 +77,7 @@ class NoteDetailFragment : Fragment() {
     private lateinit var moreOptionsButton: ImageButton
     private lateinit var undoImageButton: ImageButton
     private lateinit var redoImageButton: ImageButton
+    private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
@@ -120,6 +125,9 @@ class NoteDetailFragment : Fragment() {
             if (ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.READ_MEDIA_IMAGES
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.READ_EXTERNAL_STORAGE
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestMediaPermission()
@@ -173,22 +181,39 @@ class NoteDetailFragment : Fragment() {
             (activity as? MainActivity)?.updateCurrentPathTextView(folderName)
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
-            val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            if (imeVisible) {
-                val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
-                formatToolbar.visibility = View.VISIBLE
+        setKeyboardVisibilityListener { isOpen ->
+            if (isOpen) {
                 actionBar.visibility = View.GONE
-                formatToolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    bottomMargin = imeHeight
-                }
+                formatToolbar.visibility = View.VISIBLE
             } else {
                 formatToolbar.visibility = View.GONE
                 actionBar.visibility = View.VISIBLE
             }
-            insets
         }
+
         return view
+    }
+
+    fun setKeyboardVisibilityListener(listener: (isOpen: Boolean) -> Unit) {
+        val rootView = (activity as MainActivity).findViewById<View>(android.R.id.content)
+        rootView.viewTreeObserver.addOnGlobalLayoutListener(object :
+            ViewTreeObserver.OnGlobalLayoutListener {
+            private val r = Rect()
+            private var wasOpen = false
+
+            override fun onGlobalLayout() {
+                rootView.getWindowVisibleDisplayFrame(r)
+                val heightDiff = rootView.rootView.height - (r.bottom - r.top)
+                val isOpen = heightDiff > rootView.rootView.height * 0.15
+
+                if (isOpen == wasOpen) {
+                    return
+                }
+
+                wasOpen = isOpen
+                listener(isOpen)
+            }
+        })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -200,6 +225,28 @@ class NoteDetailFragment : Fragment() {
             }
             isBackPressedCallbackAdded = true
         }
+
+        imagePickerLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                data?.data?.let { uri ->
+                    val localImagePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        copyImageToAppStorage(uri)
+                    } else {
+                        handleOldAndroidUri(uri)
+                    }
+                    val html =
+                        "<img src=\"$localImagePath\" style=\"width: 100%; height: auto;\"/> <br><br>"
+                    contentRichEditor.evaluateJavascript(
+                        "javascript:document.execCommand('insertHTML', false, '$html');",
+                        null
+                    )
+                }
+            }
+        }
+
     }
 
     private fun handleBackPress() {
@@ -246,27 +293,9 @@ class NoteDetailFragment : Fragment() {
     }
 
     private fun openImagePicker() {
+        Log.d("MyLog", "Функция вызвана")
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, REQUEST_IMAGE_PICK)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK) {
-            data?.data?.let { uri ->
-                val localImagePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    copyImageToAppStorage(uri)
-                } else {
-                    handleOldAndroidUri(uri)
-                }
-                val html =
-                    "<img src=\"$localImagePath\" style=\"width: 100%; height: auto;\"/> <br><br>"
-                contentRichEditor.evaluateJavascript(
-                    "javascript:document.execCommand('insertHTML', false, '$html');",
-                    null
-                )
-            }
-        }
+        imagePickerLauncher.launch(intent)
     }
 
     private fun copyImageToAppStorage(imageUri: Uri): String {
@@ -476,7 +505,8 @@ class NoteDetailFragment : Fragment() {
                 } else {
                     contentRichEditor.setTextBackgroundColor(envelope.color)
                 }
-            }).setNegativeButton(getString(R.string.cancel)) { dialog, i -> dialog.dismiss() }.attachAlphaSlideBar(true)
+            }).setNegativeButton(getString(R.string.cancel)) { dialog, i -> dialog.dismiss() }
+            .attachAlphaSlideBar(true)
             .attachAlphaSlideBar(true).attachBrightnessSlideBar(true).setBottomSpace(12).show()
     }
 
