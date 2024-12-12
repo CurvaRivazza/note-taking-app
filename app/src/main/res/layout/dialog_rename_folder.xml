@@ -5,11 +5,6 @@
     android:padding="16dp"
     android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/enter_new_folder_name" />
-
     <EditText
         android:id="@+id/nameEditText"
         android:layout_width="match_parent"

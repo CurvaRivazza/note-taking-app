@@ -1,6 +1,8 @@
 package com.example.quicknotes
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.ImageButton
@@ -84,10 +86,23 @@ class MainActivity : AppCompatActivity() {
     private fun showAboutAuthorsDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_about, null)
 
+        val emailTextView: TextView = dialogView.findViewById(R.id.email_text_view)
+
+        emailTextView.setOnClickListener {
+            val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("mailto:dev.support@yandex.ru")
+                putExtra(Intent.EXTRA_SUBJECT, "Feedback on QuickNotes")
+            }
+            if (emailIntent.resolveActivity(packageManager) != null) {
+                startActivity(emailIntent)
+            }
+        }
+
         MaterialAlertDialogBuilder(this).setView(dialogView)
-            .setPositiveButton(getString(R.string.ok)) { _, _ ->
-            }.create().show()
+            .setPositiveButton(getString(R.string.ok)) { _, _ -> }
+            .create().show()
     }
+
 
     private fun showLanguageChangeDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_select_language, null)

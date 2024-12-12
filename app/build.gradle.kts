@@ -34,10 +34,16 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    packaging {
+        resources {
+            excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/NOTICE.md"
+        }
+    }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -49,6 +55,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.extensions)
     implementation("jp.wasabeef:richeditor-android:2.0.0")
     implementation("com.github.skydoves:colorpickerview:2.3.0")
+    implementation("org.apache.poi:poi:3.17")
     kapt(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

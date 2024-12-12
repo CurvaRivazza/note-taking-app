@@ -1,19 +1,14 @@
 package com.example.quicknotes
 
-import android.app.AlertDialog
-import android.media.Image
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.RadioGroup
 import android.widget.SearchView
 import android.widget.TextView
 import androidx.activity.addCallback
-import androidx.core.view.isEmpty
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,7 +31,7 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_main, container, false)
-
+        (activity as MainActivity).setLocale(requireContext(), (activity as MainActivity).getLocalePreferences())
         recyclerView = view.findViewById(R.id.recyclerView)
         fab = view.findViewById(R.id.fab)
         emptyView = view.findViewById(R.id.emptyView)
@@ -144,7 +139,7 @@ class MainFragment : Fragment() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_create_item, null)
         val titleEditText = dialogView.findViewById<EditText>(R.id.titleEditText)
 
-        MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.edit_title))
+        MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.enter_title_dialog))
             .setView(dialogView)
             .setPositiveButton(getString(R.string.next)) { dialog, which ->
                 val title = titleEditText.text.toString()
@@ -231,7 +226,6 @@ class MainFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        (activity as MainActivity).setLocale(requireContext(), (activity as MainActivity).getLocalePreferences())
         if(folderStack.isEmpty()){
             val backButton = (activity as MainActivity).findViewById<ImageButton>(R.id.backButton)
             if(backButton?.visibility == View.VISIBLE){

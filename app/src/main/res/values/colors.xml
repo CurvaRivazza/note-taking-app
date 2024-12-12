@@ -7,4 +7,5 @@
     <color name="accent">#FFB400</color>
     <color name="text">#333333</color>
     <color name="background">#ffffff</color>
+    <color name="blue">#0082FC</color>
 </resources>

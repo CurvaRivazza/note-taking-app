@@ -9,7 +9,7 @@
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Выберите папку"
+        android:text="@string/select_folder"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp" />

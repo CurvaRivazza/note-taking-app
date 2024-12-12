@@ -85,6 +85,7 @@ class NoteDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_note_detail, container, false)
+        (activity as MainActivity).setLocale(requireContext(), (activity as MainActivity).getLocalePreferences())
         titleEditText = view.findViewById(R.id.titleEditText)
         contentRichEditor = view.findViewById(R.id.contentRichEditor)
         saveButton = view.findViewById(R.id.saveButton)
@@ -246,6 +247,13 @@ class NoteDetailFragment : Fragment() {
                 }
             }
         }
+        contentRichEditor.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                if (contentRichEditor.isAttachedToWindow) {
+                    clearHighlights()
+                }
+            }
+        }
 
     }
 
@@ -393,19 +401,37 @@ class NoteDetailFragment : Fragment() {
         findDialog.show()
     }
 
+    private fun clearHighlights() {
+        contentRichEditor?.html?.let { currentContent ->
+            val clearedContent = currentContent.replace(Regex("<span style='background-color: yellow;'>(.*?)</span>", RegexOption.IGNORE_CASE), "$1")
+            contentRichEditor.html = clearedContent
+        }
+    }
+
     private fun findInEditor(searchItem: String) {
+        clearHighlights()
+        contentRichEditor.clearFocus()
+
         if (searchItem.isEmpty()) return
+
         val highlightStart = "<span style='background-color: yellow;'>"
         val highlightEnd = "</span>"
         val currentContent = contentRichEditor.html
         val escapedSearchItem = escapeHtml(searchItem)
-        val highlightedContent = currentContent.replace(
-            escapedSearchItem,
-            "$highlightStart$escapedSearchItem$highlightEnd",
-            ignoreCase = true
-        )
+
+        val highlightedContent = highlightMatches(currentContent, escapedSearchItem, highlightStart, highlightEnd)
         contentRichEditor.html = highlightedContent
     }
+
+
+    private fun highlightMatches(content: String, searchItem: String, startTag: String, endTag: String): String {
+        val regex = Regex(Regex.escape(searchItem), RegexOption.IGNORE_CASE)
+        return regex.replace(content) { matchResult ->
+            val matchedText = matchResult.value
+            "$startTag$matchedText$endTag"
+        }
+    }
+
 
     private fun escapeHtml(input: String): String {
         return input.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -511,18 +537,52 @@ class NoteDetailFragment : Fragment() {
     }
 
     private fun showShareDialog() {
-        val options = arrayOf("TXT", "HTML")
+        val options = arrayOf("TXT", "HTML", "Markdown")
         val dialog =
             MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.select_the_format_to_export))
                 .setItems(options) { dialog, which ->
                     when (which) {
                         0 -> exportAsTXT()
                         1 -> exportAsHTML()
+                        2 -> exportAsMarkdown()
                     }
                     dialog.dismiss()
-                }
+                }.setNegativeButton(getString(R.string.cancel)){dialog, i -> dialog.dismiss()}
         dialog.show()
     }
+
+    private fun convertHtmlToMarkdown(html: String): String {
+        var markdown = html
+            .replace(Regex("<h1>(.*?)</h1>", RegexOption.IGNORE_CASE), "# $1\n")
+            .replace(Regex("<h2>(.*?)</h2>", RegexOption.IGNORE_CASE), "## $1\n")
+            .replace(Regex("<h3>(.*?)</h3>", RegexOption.IGNORE_CASE), "### $1\n")
+            .replace(Regex("<h4>(.*?)</h4>", RegexOption.IGNORE_CASE), "#### $1\n")
+            .replace(Regex("<h5>(.*?)</h5>", RegexOption.IGNORE_CASE), "##### $1\n")
+            .replace(Regex("<h6>(.*?)</h6>", RegexOption.IGNORE_CASE), "###### $1\n")
+            .replace(Regex("<b>(.*?)</b>", RegexOption.IGNORE_CASE), "**$1**")
+            .replace(Regex("<i>(.*?)</i>", RegexOption.IGNORE_CASE), "*$1*")
+            .replace(Regex("<u>(.*?)</u>", RegexOption.IGNORE_CASE), "_$1_")
+            .replace(Regex("<s>(.*?)</s>", RegexOption.IGNORE_CASE), "~~$1~~")
+            .replace(Regex("<br>", RegexOption.IGNORE_CASE), "\n")
+            .replace(Regex("&nbsp;", RegexOption.IGNORE_CASE), " ")
+
+        markdown = markdown.replace(Regex("<ul>(.*?)</ul>", RegexOption.IGNORE_CASE), "\n$1\n")
+            .replace(Regex("<li>(.*?)</li>", RegexOption.IGNORE_CASE), "- $1\n")
+            .replace(Regex("<ol>(.*?)</ol>", RegexOption.IGNORE_CASE), "\n$1\n")
+            .replace(Regex("<li>(.*?)</li>", RegexOption.IGNORE_CASE), "1. $1\n")
+
+        markdown = markdown.replace(Regex("<[^>]*>", RegexOption.IGNORE_CASE), "")
+
+        return markdown.trim()
+    }
+
+
+    private fun exportAsMarkdown() {
+        val content = convertHtmlToMarkdown(contentRichEditor.html)
+        val fileName = "${titleEditText.text}.md"
+        saveToFile(fileName, content, "text/markdown")
+    }
+
 
     private fun exportAsTXT() {
         val content =
@@ -543,7 +603,7 @@ class NoteDetailFragment : Fragment() {
 
     private fun saveToFile(fileName: String, content: String, mimeType: String) {
         val file = File(requireContext().getExternalFilesDir(null), fileName)
-        file.writeText(content, charset("windows-1251"))
+        file.writeText(content, Charsets.UTF_8)
         val uri = FileProvider.getUriForFile(
             requireContext(),
             "com.example.quicknotes.fileprovider",
@@ -569,7 +629,6 @@ class NoteDetailFragment : Fragment() {
             recyclerView.layoutManager = LinearLayoutManager(context)
 
             val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.select_folder))
                 .setView(dialogView)
                 .setNegativeButton(getString(R.string.cancel), null).create()
 

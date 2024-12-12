@@ -57,7 +57,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun getFolderById(folderId: Int?, context: Context) {
+    fun getFolderById(folderId: Int?) {
         if(folderId == null){
             _folderName.value = ""
         } else {
