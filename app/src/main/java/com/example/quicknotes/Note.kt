@@ -11,9 +11,9 @@ import java.io.Serializable
 data class Note(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val title: String,
-    val content: String,
+    var title: String,
+    var content: String,
     var folderId: Int? = null,
-    val createdAt: Long,
-    val updatedAt: Long
+    var createdAt: Long,
+    var updatedAt: Long
 ) : Serializable

@@ -646,7 +646,7 @@ class NoteDetailFragment : Fragment() {
         currentNote?.let {
             val updatedNote = it.copy(folderId = folderId)
             viewModel.updateNote(updatedNote)
-            viewModel.getFolderById(folderId, requireContext())
+            viewModel.getFolderById(folderId)
             Toast.makeText(requireContext(), "Заметка перемещена в папку", Toast.LENGTH_SHORT)
                 .show()
         }

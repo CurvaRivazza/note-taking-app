@@ -68,7 +68,7 @@ class MainFragment : Fragment() {
                         }
                         activity.findViewById<ImageButton>(R.id.backButton).visibility =
                             View.VISIBLE
-                        noteViewModel.getFolderById(item.folderId, requireContext())
+                        noteViewModel.getFolderById(item.folderId)
                     }
                 }
             }
@@ -121,7 +121,7 @@ class MainFragment : Fragment() {
             folderStack.removeAt(folderStack.size - 1)
             val lastFolderId = folderStack.lastOrNull()
             noteViewModel.loadItems(lastFolderId)
-            noteViewModel.getFolderById(lastFolderId, requireContext())
+            noteViewModel.getFolderById(lastFolderId)
             updateBackButtonVisibility()
         }
     }

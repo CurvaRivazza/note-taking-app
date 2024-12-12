@@ -9,5 +9,5 @@ data class Folder(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     var name: String,
-    val parentId: Int? = null
+    var parentId: Int? = null
 ) : Serializable
