@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -47,8 +48,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.skydoves.colorpickerview.ColorPickerDialog
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import jp.wasabeef.richeditor.RichEditor
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.StringReader
 
 class NoteDetailFragment : Fragment() {
     private var currentNote: Note? = null
@@ -58,7 +61,7 @@ class NoteDetailFragment : Fragment() {
     private var isViewMode: Boolean = false
     lateinit var viewModel: NoteViewModel
     private lateinit var titleEditText: EditText
-    private lateinit var contentRichEditor: RichEditor
+    lateinit var contentRichEditor: RichEditor
     private lateinit var saveButton: ImageButton
     private lateinit var hintTextView: TextView
     private lateinit var formatToolbar: HorizontalScrollView
@@ -89,7 +92,10 @@ class NoteDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_note_detail, container, false)
-        (activity as MainActivity).setLocale(requireContext(), (activity as MainActivity).getLocalePreferences())
+        (activity as MainActivity).setLocale(
+            requireContext(),
+            (activity as MainActivity).getLocalePreferences()
+        )
         titleEditText = view.findViewById(R.id.titleEditText)
         contentRichEditor = view.findViewById(R.id.contentRichEditor)
         saveButton = view.findViewById(R.id.saveButton)
@@ -408,7 +414,12 @@ class NoteDetailFragment : Fragment() {
 
     private fun clearHighlights() {
         contentRichEditor?.html?.let { currentContent ->
-            val clearedContent = currentContent.replace(Regex("<span style='background-color: yellow;'>(.*?)</span>", RegexOption.IGNORE_CASE), "$1")
+            val clearedContent = currentContent.replace(
+                Regex(
+                    "<span style='background-color: yellow;'>(.*?)</span>",
+                    RegexOption.IGNORE_CASE
+                ), "$1"
+            )
             contentRichEditor.html = clearedContent
         }
     }
@@ -424,12 +435,18 @@ class NoteDetailFragment : Fragment() {
         val currentContent = contentRichEditor.html
         val escapedSearchItem = escapeHtml(searchItem)
 
-        val highlightedContent = highlightMatches(currentContent, escapedSearchItem, highlightStart, highlightEnd)
+        val highlightedContent =
+            highlightMatches(currentContent, escapedSearchItem, highlightStart, highlightEnd)
         contentRichEditor.html = highlightedContent
     }
 
 
-    private fun highlightMatches(content: String, searchItem: String, startTag: String, endTag: String): String {
+    private fun highlightMatches(
+        content: String,
+        searchItem: String,
+        startTag: String,
+        endTag: String
+    ): String {
         val regex = Regex(Regex.escape(searchItem), RegexOption.IGNORE_CASE)
         return regex.replace(content) { matchResult ->
             val matchedText = matchResult.value
@@ -534,8 +551,14 @@ class NoteDetailFragment : Fragment() {
                     contentRichEditor.setTextColor(envelope.color)
                 } else {
                     val alpha = envelope.color.alpha / 255.0f
-                    val rgb = String.format("#%02x%02x%02x", envelope.color.red, envelope.color.green, envelope.color.blue)
-                    val js = "document.execCommand('hiliteColor', false, 'rgba(${envelope.color.red}, ${envelope.color.green}, ${envelope.color.blue}, $alpha)');"
+                    val rgb = String.format(
+                        "#%02x%02x%02x",
+                        envelope.color.red,
+                        envelope.color.green,
+                        envelope.color.blue
+                    )
+                    val js =
+                        "document.execCommand('hiliteColor', false, 'rgba(${envelope.color.red}, ${envelope.color.green}, ${envelope.color.blue}, $alpha)');"
                     contentRichEditor.evaluateJavascript(js, null)
                 }
             }).setNegativeButton(getString(R.string.cancel)) { dialog, i -> dialog.dismiss() }
@@ -547,50 +570,17 @@ class NoteDetailFragment : Fragment() {
 
 
     private fun showShareDialog() {
-        val options = arrayOf("TXT", "HTML", "Markdown")
+        val options = arrayOf("TXT", "HTML")
         val dialog =
             MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.select_the_format_to_export))
                 .setItems(options) { dialog, which ->
                     when (which) {
                         0 -> exportAsTXT()
                         1 -> exportAsHTML()
-                        2 -> exportAsMarkdown()
                     }
                     dialog.dismiss()
-                }.setNegativeButton(getString(R.string.cancel)){dialog, i -> dialog.dismiss()}
+                }.setNegativeButton(getString(R.string.cancel)) { dialog, i -> dialog.dismiss() }
         dialog.show()
-    }
-
-    private fun convertHtmlToMarkdown(html: String): String {
-        var markdown = html
-            .replace(Regex("<h1>(.*?)</h1>", RegexOption.IGNORE_CASE), "# $1\n")
-            .replace(Regex("<h2>(.*?)</h2>", RegexOption.IGNORE_CASE), "## $1\n")
-            .replace(Regex("<h3>(.*?)</h3>", RegexOption.IGNORE_CASE), "### $1\n")
-            .replace(Regex("<h4>(.*?)</h4>", RegexOption.IGNORE_CASE), "#### $1\n")
-            .replace(Regex("<h5>(.*?)</h5>", RegexOption.IGNORE_CASE), "##### $1\n")
-            .replace(Regex("<h6>(.*?)</h6>", RegexOption.IGNORE_CASE), "###### $1\n")
-            .replace(Regex("<b>(.*?)</b>", RegexOption.IGNORE_CASE), "**$1**")
-            .replace(Regex("<i>(.*?)</i>", RegexOption.IGNORE_CASE), "*$1*")
-            .replace(Regex("<u>(.*?)</u>", RegexOption.IGNORE_CASE), "_$1_")
-            .replace(Regex("<s>(.*?)</s>", RegexOption.IGNORE_CASE), "~~$1~~")
-            .replace(Regex("<br>", RegexOption.IGNORE_CASE), "\n")
-            .replace(Regex("&nbsp;", RegexOption.IGNORE_CASE), " ")
-
-        markdown = markdown.replace(Regex("<ul>(.*?)</ul>", RegexOption.IGNORE_CASE), "\n$1\n")
-            .replace(Regex("<li>(.*?)</li>", RegexOption.IGNORE_CASE), "- $1\n")
-            .replace(Regex("<ol>(.*?)</ol>", RegexOption.IGNORE_CASE), "\n$1\n")
-            .replace(Regex("<li>(.*?)</li>", RegexOption.IGNORE_CASE), "1. $1\n")
-
-        markdown = markdown.replace(Regex("<[^>]*>", RegexOption.IGNORE_CASE), "")
-
-        return markdown.trim()
-    }
-
-
-    private fun exportAsMarkdown() {
-        val content = convertHtmlToMarkdown(contentRichEditor.html)
-        val fileName = "${titleEditText.text}.md"
-        saveToFile(fileName, content, "text/markdown")
     }
 
 
@@ -606,9 +596,44 @@ class NoteDetailFragment : Fragment() {
     }
 
     private fun exportAsHTML() {
-        val content = "<h1>${titleEditText.text}</h1>\n${contentRichEditor.html}"
+        val content = "<h1>${titleEditText.text}</h1>\n${embedImagesInHtml(contentRichEditor.html)}"
         val fileName = "${titleEditText.text}.html"
         saveToFile(fileName, content, "text/html")
+    }
+
+    private fun embedImagesInHtml(html: String): String {
+        val regex = Regex("<img src=\"(.*?)\".*?>(?:(.*?)</img>)?", RegexOption.IGNORE_CASE)
+        var modifiedHtml = html
+
+        regex.findAll(html).forEach { matchResult ->
+            val imageUri = matchResult.groupValues[1]
+            val base64Image = convertImageToBase64(imageUri)
+            val dataUri = "data:image/jpeg;base64,$base64Image"
+
+            val width = "300"
+
+            modifiedHtml =
+                modifiedHtml.replace(matchResult.value, "<img src=\"$dataUri\" width=\"$width\"/>")
+        }
+
+        return modifiedHtml
+    }
+
+    private fun convertImageToBase64(imageUri: String): String {
+        val inputStream = context?.contentResolver?.openInputStream(Uri.parse(imageUri))
+        val byteArrayOutputStream = ByteArrayOutputStream()
+
+        inputStream?.use { input ->
+            val buffer = ByteArray(1024)
+            var length: Int
+
+            while (input.read(buffer).also { length = it } != -1) {
+                byteArrayOutputStream.write(buffer, 0, length)
+            }
+        }
+
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
 
     private fun saveToFile(fileName: String, content: String, mimeType: String) {

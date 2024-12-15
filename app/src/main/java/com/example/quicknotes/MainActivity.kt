@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -41,6 +43,16 @@ class MainActivity : AppCompatActivity() {
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START)
             } else {
+                val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                val view = currentFocus
+                view?.let {
+                    inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
+                }
+                supportFragmentManager.fragments.forEach { fragment ->
+                    if (fragment is NoteDetailFragment) {
+                        fragment.contentRichEditor.clearFocus()
+                    }
+                }
                 drawerLayout.openDrawer(GravityCompat.START)
             }
         }
