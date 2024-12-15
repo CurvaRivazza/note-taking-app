@@ -31,6 +31,10 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.graphics.alpha
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -194,6 +198,7 @@ class NoteDetailFragment : Fragment() {
 
         return view
     }
+
 
     fun setKeyboardVisibilityListener(listener: (isOpen: Boolean) -> Unit) {
         val rootView = (activity as MainActivity).findViewById<View>(android.R.id.content)
@@ -522,19 +527,24 @@ class NoteDetailFragment : Fragment() {
     }
 
     private fun showColorPickerDialog(isTextColor: Boolean) {
-        val defaultColor = if (isTextColor) resources.getColor(R.color.text) else Color.TRANSPARENT
         ColorPickerDialog.Builder(requireContext()).setTitle(getString(R.string.pick_a_color))
             .setPreferenceName("ColorPickerDialog")
             .setPositiveButton(getString(R.string.ok), ColorEnvelopeListener { envelope, fromUser ->
                 if (isTextColor) {
                     contentRichEditor.setTextColor(envelope.color)
                 } else {
-                    contentRichEditor.setTextBackgroundColor(envelope.color)
+                    val alpha = envelope.color.alpha / 255.0f
+                    val rgb = String.format("#%02x%02x%02x", envelope.color.red, envelope.color.green, envelope.color.blue)
+                    val js = "document.execCommand('hiliteColor', false, 'rgba(${envelope.color.red}, ${envelope.color.green}, ${envelope.color.blue}, $alpha)');"
+                    contentRichEditor.evaluateJavascript(js, null)
                 }
             }).setNegativeButton(getString(R.string.cancel)) { dialog, i -> dialog.dismiss() }
             .attachAlphaSlideBar(true)
-            .attachAlphaSlideBar(true).attachBrightnessSlideBar(true).setBottomSpace(12).show()
+            .attachBrightnessSlideBar(true)
+            .setBottomSpace(12)
+            .show()
     }
+
 
     private fun showShareDialog() {
         val options = arrayOf("TXT", "HTML", "Markdown")
