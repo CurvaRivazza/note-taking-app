@@ -551,12 +551,6 @@ class NoteDetailFragment : Fragment() {
                     contentRichEditor.setTextColor(envelope.color)
                 } else {
                     val alpha = envelope.color.alpha / 255.0f
-                    val rgb = String.format(
-                        "#%02x%02x%02x",
-                        envelope.color.red,
-                        envelope.color.green,
-                        envelope.color.blue
-                    )
                     val js =
                         "document.execCommand('hiliteColor', false, 'rgba(${envelope.color.red}, ${envelope.color.green}, ${envelope.color.blue}, $alpha)');"
                     contentRichEditor.evaluateJavascript(js, null)
