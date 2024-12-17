@@ -142,7 +142,7 @@ class MainFragment : Fragment() {
         MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.enter_title_dialog))
             .setView(dialogView)
             .setPositiveButton(getString(R.string.next)) { dialog, which ->
-                val title = titleEditText.text.toString()
+                val title = titleEditText.text.toString().trim()
                 if (title.isNotEmpty()) {
                     showCreateItemTypeDialog(title)
                 }

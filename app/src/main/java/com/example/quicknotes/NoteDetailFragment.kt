@@ -366,13 +366,13 @@ class NoteDetailFragment : Fragment() {
     private fun deleteNote() {
         currentNote?.let { note ->
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Удалить заметку")
-                .setMessage("Вы уверены, что хотите удалить эту заметку?")
-                .setPositiveButton("Да") { _, _ ->
+                .setTitle(getString(R.string.delete_note))
+                .setMessage(getString(R.string.confirm_delete))
+                .setPositiveButton(getString(R.string.yes)) { _, _ ->
                     viewModel.deleteNote(note)
                     parentFragmentManager.popBackStack()
                 }
-                .setNegativeButton("Нет") { dialog, _ -> dialog.dismiss() }
+                .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
                 .show()
         } ?: run {
 
@@ -494,17 +494,17 @@ class NoteDetailFragment : Fragment() {
 
     private fun showUnsavedChangesDialog() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Несохраненные изменения")
-            .setMessage("У вас есть несохраненные изменения. Вы хотите их сохранить?")
-            .setPositiveButton("Сохранить") { _, _ ->
+            .setTitle(getString(R.string.unsaved_changes))
+            .setMessage(getString(R.string.confirm_save))
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
                 saveNote()
                 parentFragmentManager.popBackStack()
             }
-            .setNegativeButton("Отменить") { dialog, _ ->
+            .setNegativeButton(getString(R.string.do_not_save)) { dialog, _ ->
                 dialog.dismiss()
                 parentFragmentManager.popBackStack()
             }
-            .setNeutralButton("Отмена", null)
+            .setNeutralButton(getString(R.string.undo), null)
             .show()
     }
 

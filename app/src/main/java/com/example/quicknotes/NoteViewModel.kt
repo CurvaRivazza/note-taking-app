@@ -86,6 +86,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteNote(note: Note) = viewModelScope.launch {
         repository.deleteNote(note)
+        loadItems(currentFolderId)
     }
 
     fun insertNote(note: Note) = viewModelScope.launch {

@@ -50,4 +50,12 @@
     <string name="save">Save</string>
     <string name="select_folder">Select Folder</string>
     <string name="root_folder">"Root</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="confirm_delete">Are you sure you want to delete this note?</string>
+    <string name="delete_note">Delete a note</string>
+    <string name="undo">Undo</string>
+    <string name="do_not_save">Cancel</string>
+    <string name="unsaved_changes">Unsaved Changes</string>
+    <string name="confirm_save">You have unsaved changes. Do you want to save them?</string>
 </resources>

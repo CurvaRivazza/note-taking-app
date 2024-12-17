@@ -50,4 +50,12 @@
     <string name="save">Сохранить</string>
     <string name="select_folder">Выберите папку</string>
     <string name="root_folder">Главная</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="confirm_delete">Вы уверены, что хотите удалить эту заметку?</string>
+    <string name="delete_note">Удалить заметку</string>
+    <string name="undo">Отмена</string>
+    <string name="do_not_save">Отменить</string>
+    <string name="unsaved_changes">Несохраненные изменения</string>
+    <string name="confirm_save">У вас есть несохраненные изменения. Вы хотите их сохранить?</string>
 </resources>
