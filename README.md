@@ -68,11 +68,14 @@ NoteApp is a note—taking application that allows users to create and organize 
  - Open the note.
  - Make changes and click "Save".
 
-## Screenshot
+## Screenshots
 
 ![Main Screen](screenshots/MainScreen.jpg)
+
 ![Edit Note](screenshots/EditNoteScreen.jpg)
+
 ![Main Screen Dark Theme](screenshots/MainScreenDarkTheme.jpg)
+
 ![Application Menu](screenshots/Menu.jpg)
 
 ## Contacts
