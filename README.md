@@ -2,7 +2,7 @@
 
 ![QuickNotes Logo](screenshots/logo.jpg)
 
-NoteApp is a handy Android note—taking app written in Kotlin. It allows you to create folders (including attachments) and notes, edit them, and use various text formatting functions.
+QuickNotes is a handy Android note—taking app written in Kotlin. It allows you to create folders (including attachments) and notes, edit them, and use various text formatting functions.
 
 ## Content
 
@@ -16,7 +16,7 @@ NoteApp is a handy Android note—taking app written in Kotlin. It allows you to
 
 ## Description
 
-NoteApp is a note—taking application that allows users to create and organize their notes in folders. The application supports various text formatting functions and allows you to share notes in TXT and HTML format.
+QuickNotes is a note—taking application that allows users to create and organize their notes in folders. The application supports various text formatting functions and allows you to share notes in TXT and HTML format.
 
 ## Functions
 
