@@ -83,7 +83,7 @@ NoteApp is a note—taking application that allows users to create and organize 
 If you have any questions or suggestions, please contact me.:
 
 - **Email:** dev.assist@yandex.ru
-- **GitHub:** [Your GitHub Profile](https://github.com/S0s0Combain)
+- **GitHub:** [S0s0Combain](https://github.com/S0s0Combain)
 
 ## License
 
